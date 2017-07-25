@@ -13,8 +13,8 @@ namespace LdapToXML
     {
         public DirectoryEntry directoryEntry;
         public DirectorySearcher directorySearch;
-        public SearchResultCollection searchResults;
-        public List<SearchResult> searchResultList;
+       // public SearchResultCollection searchResults;
+        public IEnumerable<SearchResult> searchResultList;
 
         public LdapConnection()
         {
@@ -22,24 +22,19 @@ namespace LdapToXML
             directoryEntry = new DirectoryEntry("LDAP://ldap.forumsys.com/dc=example,dc=com", "uid=tesla,dc=example,dc=com", "password", AuthenticationTypes.None);
         }
 
-        public void setSearch()
+        public void setAndExecuteSearch(string filter, int pageSize)
         {
-            // TODO add filter to search if specified
-            directorySearch = new DirectorySearcher(directoryEntry);
+            directorySearch = new DirectorySearcher(directoryEntry, filter);
+            using(directorySearch)
+            {
+                directorySearch.PageSize = pageSize;
+                searchResultList = SafeFindAll(directorySearch);
+            }
         }
 
-        public void executeSearch()
+
+        public void searchResultsToXml(string filePath, string[] properties)
         {
-            // TODO figure out how to get more than 1000 results
-            // searchResults = directorySearch.FindAll(); 
-            searchResultList = mockSearchResults();
-        }
-
-        public void searchResultsToXml()
-        {
-
-            string[] properties = { "DisplayName", "Description", "Department", "Office", "OfficePhone", "EmailAddress", "Photo" };
-
             XElement allResults = new XElement("Objs");
             var counter = 0;
 
@@ -74,7 +69,7 @@ namespace LdapToXML
                 counter++;
             }
             XDocument doc = new XDocument(allResults);
-            doc.Save(Path.GetFullPath(@"C:\Users\mshimoda\Source\Repos\BWS-Intranet\CMS\xml\MockXml.xml"));
+            doc.Save(Path.GetFullPath(filePath));
         }
 
         public List<SearchResult> SearchResultsToList(SearchResultCollection results)
@@ -103,6 +98,18 @@ namespace LdapToXML
             }
 
             return results;
+        }
+
+        /* from https://stackoverflow.com/questions/90652/can-i-get-more-than-1000-records-from-a-directorysearcher-in-asp-net */
+        public IEnumerable<SearchResult> SafeFindAll(DirectorySearcher search)
+        {
+            using (SearchResultCollection results = search.FindAll())
+            {
+                foreach( SearchResult result in results)
+                {
+                    yield return result;
+                }
+            }
         }
 
         public String getProperty(string property, SearchResult result)
