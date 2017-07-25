@@ -100,7 +100,7 @@ namespace LdapToXML
             return results;
         }
 
-        /* from https://stackoverflow.com/questions/90652/can-i-get-more-than-1000-records-from-a-directorysearcher-in-asp-net */
+        // From https://stackoverflow.com/questions/90652/can-i-get-more-than-1000-records-from-a-directorysearcher-in-asp-net 
         public IEnumerable<SearchResult> SafeFindAll(DirectorySearcher search)
         {
             using (SearchResultCollection results = search.FindAll())
@@ -112,11 +112,23 @@ namespace LdapToXML
             }
         }
 
-        public String getProperty(string property, SearchResult result)
+        public string getProperty(string property, SearchResult result)
         {
-            if (result.Properties[property].Count > 0)
+            var count = result.Properties[property].Count;
+            if (count > 0)
             {
-                return result.Properties[property][0].ToString();
+                string value = String.Empty;
+                foreach (String val in result.Properties[property])
+                {
+                    value += val;
+                    count--;
+                    if(count > 0)
+                    {
+                        value += ", ";
+                    }
+                }
+                return value;
+           
             }
             else
             {
