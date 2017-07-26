@@ -16,10 +16,10 @@ namespace LdapToXML
        // public SearchResultCollection searchResults;
         public IEnumerable<SearchResult> searchResultList;
 
-        public LdapConnection()
+        public LdapConnection(string server, string user, string pass)
         {
             // TODO make constructor take an object to set these credentials
-            directoryEntry = new DirectoryEntry("LDAP://ldap.forumsys.com/dc=example,dc=com", "uid=tesla,dc=example,dc=com", "password", AuthenticationTypes.None);
+            directoryEntry = new DirectoryEntry("LDAP://" + server, user, pass, AuthenticationTypes.None);
         }
 
         public void setAndExecuteSearch(string filter, int pageSize)
@@ -71,34 +71,7 @@ namespace LdapToXML
             XDocument doc = new XDocument(allResults);
             doc.Save(Path.GetFullPath(filePath));
         }
-
-        public List<SearchResult> SearchResultsToList(SearchResultCollection results)
-        {
-            // TODO replace when using actual data, grab results and map to List<SearchResult>
-            return mockSearchResults();
-        }
-
-        private List<SearchResult> mockSearchResults()
-        {
-            List<SearchResult> results = new List<SearchResult>();
-
-            for (int i = 0; i < 10; i++)
-            {
-                var user = new
-                {
-                    DisplayName = "user" + i,
-                    Description = "description" + i,
-                    Department = "department" + i,
-                    Office = "office" + i,
-                    OfficePhone = "808-555-555" + i,
-                    EmailAddress = "usertest" + i + "@sample.com",
-                    Photo = "randomstring"
-                };
-                results.Add(SearchResultFactory.Construct(user));
-            }
-
-            return results;
-        }
+  
 
         // From https://stackoverflow.com/questions/90652/can-i-get-more-than-1000-records-from-a-directorysearcher-in-asp-net 
         public IEnumerable<SearchResult> SafeFindAll(DirectorySearcher search)

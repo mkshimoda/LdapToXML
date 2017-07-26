@@ -12,46 +12,51 @@ namespace LdapToXML
     {
         static void Main(string[] args)
         {
-            string[] properties;
-            string xmlPath;
-            string toUpdate;
 
+            string toUpdate = (args.Length > 0) ? args[0].ToLower() : String.Empty;
             string filter = ConfigurationManager.AppSettings["filter"];
             int pageSize = Convert.ToInt32(ConfigurationManager.AppSettings["pageSize"]);
 
-            if(args.Length > 0)
-            {
-                toUpdate = args[0].ToLower();
-            }
-            else
-            {
-                toUpdate = String.Empty;
-            }
             string propertiesToUpdate;
             string xmlToUpdate;
+            string ldapServer;
+            string user;
+            string pwd;
 
-            switch(toUpdate)
+            switch (toUpdate)
             {
                 case "bws":
                     propertiesToUpdate = "BWSEmployeeProperties";
                     xmlToUpdate = "BWSEmployeeXMLPath";
+                    ldapServer = "ldapServerBws";
+                    user = "usernameBws";
+                    pwd = "passwordBws";
                     break;
                 case "city":
                     propertiesToUpdate = "CityEmployeeProperties";
                     xmlToUpdate = "CityEmployeeXMLPath";
+                    ldapServer = "ldapServerCity";
+                    user = "usernameCity";
+                    pwd = "passwordCity";
                     break;
                 default:
                     propertiesToUpdate = "TestProperties";
                     xmlToUpdate = "TestXMLPath";
+                    ldapServer = "ldapServerTest";
+                    user = "usernameTest";
+                    pwd = "passwordTest";
                     break;
             }
 
-            properties = ConfigurationManager.AppSettings[propertiesToUpdate].Split(';');
-            xmlPath = ConfigurationManager.AppSettings[xmlToUpdate];
+            string[] properties = ConfigurationManager.AppSettings[propertiesToUpdate].Split(';');
+            string xmlPath = ConfigurationManager.AppSettings[xmlToUpdate];
+            string server = ConfigurationManager.AppSettings[ldapServer];
+            string username = ConfigurationManager.AppSettings[user];
+            string password = ConfigurationManager.AppSettings[pwd];
 
-            if(properties.Length > 0 && pageSize > 0 && File.Exists(xmlPath))
+            if (properties.Length > 0 && pageSize > 0 && File.Exists(xmlPath))
             {
-                LdapConnection ldapConnection = new LdapConnection();
+                LdapConnection ldapConnection = new LdapConnection(server, username, password);
                 ldapConnection.setAndExecuteSearch(filter, pageSize);
                 ldapConnection.searchResultsToXml(xmlPath, properties);
             }
